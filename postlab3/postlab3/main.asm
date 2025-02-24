@@ -93,6 +93,8 @@ SETUP:
 	LDI		R19, 0x00		// Registro de overflows de timer0
 	LDI		R20, 0x00		// Registro del timer
 	LDI		R21, 0x00		// Timer interrupcion
+	LDI		R22, 0x00		// Registro para el segundo contador
+	LDI		R23, 0x00		// Registro para el segundo display
 
 	// Activamos las interrupciones
 	SEI
@@ -123,8 +125,21 @@ SUMA:						// Función para el incremento del primer contador
 	BRNE	SALTITO			// Se observa si tiene más de 4 bits
 	CALL	OVER			// En caso de overflow y debe regresar el puntero a 0
 	LDI		R20, 0x00		// En caso de overflow y debe regresar a 0
+	CALL	SUMA2
 	SALTITO:
+	//LAS		Z, R20
 	LPM		R18, Z			// Subir valor del puntero a registro
+	RET
+
+SUMA2:
+	INC		R22				// Se incrementa el valor
+	ADIW	Z, 1			// Se incrementa el valor en el puntero de la tabla
+	CPI		R22, 10
+	BRNE	SALTITO			// Se observa si tiene más de 4 bits
+	CALL	OVER			// En caso de overflow y debe regresar el puntero a 0
+	LDI		R22, 0x00		// En caso de overflow y debe regresar a 0
+	SALTITO2:
+	LPM		R23, Z			// Subir valor del puntero a registro
 	RET
 
 OVER:
@@ -168,8 +183,8 @@ OVERFLOW:
     IN		R18, SREG		// Se ingresa el registro del SREG a R18
     PUSH	R18				// Se guarda el registro del SREG
 
-	LDI		R16, 178
-	OUT		TCNT0, R16		// Cargar valor inicial en TCNT0
+	LDI		R18, 178
+	OUT		TCNT0, R18		// Cargar valor inicial en TCNT0
 	INC		R19				// Se incrementa el tiempo del timer
 
 	POP		R18				// Se trae el registro del SREG
