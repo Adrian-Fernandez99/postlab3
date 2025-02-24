@@ -101,10 +101,10 @@ SETUP:
 MAIN_LOOP:
 	SEI
 	OUT		PORTC, R16		// Se loopea la salida del puerto
-	CPI		R19, 15			// Se esperan 50 overflows para hacer un segundo
+	CPI		R19, 50			// Se esperan 50 overflows para hacer un segundo
 	BRNE	MAIN_LOOP
-	CALL	SUMA
 	CLR		R19
+	CALL	SUMA
 	OUT		PORTD, R18		// Sale la señal
 	JMP		MAIN_LOOP
 
@@ -134,7 +134,12 @@ OVER:
 
 // Interrupt routines
 BOTONES:
-	CLI						// Desabilitamos
+	CLI						// Deshabilitamos las interrupciones
+
+	PUSH	R18				// Se guarda el registro actual de R18
+    IN		R18, SREG		// Se ingresa el registro del SREG a R18
+    PUSH	R18				// Se guarda el registro del SREG
+
 	IN		R17, PINB		// Se ingresa la configuración del PIND
 	CPI		R17, 0x1D		// Se compara para ver si el botón está presionado
 	BRNE	DECREMENTO		// Si no esta preionado termina la interrupción
@@ -149,9 +154,26 @@ BOTONES:
 	SBRC	R16, 4			// Si genera underflow reinicia contador
 	LDI		R16, 0x0F
 	FINAL: 
+
+	POP		R18				// Se trae el registro del SREG
+    OUT		SREG, R18		// Se ingresa el registro del SREG a R18
+    POP		R18				// Se trae el registro anterior de R18	
+
 	RETI					// Regreso de la interrupción
 
 OVERFLOW:
 	CLI
-	INC		R19
+
+	PUSH	R18				// Se guarda el registro actual de R18
+    IN		R18, SREG		// Se ingresa el registro del SREG a R18
+    PUSH	R18				// Se guarda el registro del SREG
+
+	LDI		R16, 178
+	OUT		TCNT0, R16		// Cargar valor inicial en TCNT0
+	INC		R19				// Se incrementa el tiempo del timer
+
+	POP		R18				// Se trae el registro del SREG
+    OUT		SREG, R18		// Se ingresa el registro del SREG a R18
+    POP		R18				// Se trae el registro anterior de R18	
+
 	RETI
