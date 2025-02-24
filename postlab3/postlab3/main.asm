@@ -95,6 +95,7 @@ SETUP:
 	LDI		R21, 0x00		// Timer interrupcion
 	LDI		R22, 0x00		// Registro para el segundo contador
 	LDI		R23, 0x00		// Registro para el segundo display
+	LDI		R24, 0x00		// Registro para decidir que display mostrar
 
 	// Activamos las interrupciones
 	SEI
@@ -103,20 +104,26 @@ SETUP:
 MAIN_LOOP:
 	SEI
 
-	SBI		PORTC, 4		// Se setea el pin 4 del puerto C
+	CPI		R24, 0x00
+	BREQ	DISPLAY
+	SBI		PORTC, 4		// Se setea el pin 4 del puerto
+	CBI		PORTC, 5		// Se clearea el pin 5 del puerto C
 	OUT		PORTD, R23		// Sale la señal del contador 1
-	CBI		PORTC, 4		// Se clearea el pin 4 del puerto C
-	
-	OUT		PORTC, R16		// Se loopea la salida del puerto
+	JMP		CONTINUAR
 
+	DISPLAY:
+	CBI		PORTC, 4		// Se clearea el pin 4 del puerto C
 	SBI		PORTC, 5		// Se setea el pin 5 del puerto C
 	OUT		PORTD, R18		// Sale la señal del contador 1
-	CBI		PORTC, 5		// Se clearea el pin 5 del puerto C
 
+	CONTINUAR:
+	OUT		PORTC, R16		// Se loopea la salida del puerto
+	
 	CPI		R19, 50			// Se esperan 50 overflows para hacer un segundo
-	BRNE	MAIN_LOOP
-	CLR		R19
-	CALL	SUMA
+	BRNE	MAIN_LOOP		
+
+	CLR		R19				// Se limpia el registro de R19
+	CALL	SUMA			// Se llama el incremento del dislpay
 	JMP		MAIN_LOOP
 
 // NON-Interrupt subroutines
@@ -141,8 +148,8 @@ SUMA:						// Función para el incremento del primer contador
 
 SUMA2:
 	INC		R22				// Se incrementa el valor
-	CPI		R22, 10
-	BRNE	SALTITO2			// Se observa si tiene más de 4 bits
+	CPI		R22, 7
+	BRNE	SALTITO2		// Se observa si tiene más de 4 bits
 	LDI		R22, 0x00		// En caso de overflow y debe regresar a 0
 	SALTITO2:
 	CALL	OVER			// Se resetea el puntero
@@ -187,16 +194,26 @@ BOTONES:
 OVERFLOW:
 	CLI
 
-	PUSH	R18				// Se guarda el registro actual de R18
-    IN		R18, SREG		// Se ingresa el registro del SREG a R18
-    PUSH	R18				// Se guarda el registro del SREG
+	PUSH	R17				// Se guarda el registro actual de R18
+    IN		R17, SREG		// Se ingresa el registro del SREG a R18
+    PUSH	R17				// Se guarda el registro del SREG
 
-	LDI		R18, 178
-	OUT		TCNT0, R18		// Cargar valor inicial en TCNT0
+	CPI		R24, 0x00
+	BREQ	DISPLAY2
+	LDI		R24, 0x00
+	JMP		CONTINUAR2
+
+	DISPLAY2:
+	LDI		R24, 0x01
+
+	CONTINUAR2:
+
+	LDI		R17, 178
+	OUT		TCNT0, R17		// Cargar valor inicial en TCNT0
 	INC		R19				// Se incrementa el tiempo del timer
 
-	POP		R18				// Se trae el registro del SREG
-    OUT		SREG, R18		// Se ingresa el registro del SREG a R18
-    POP		R18				// Se trae el registro anterior de R18	
+	POP		R17				// Se trae el registro del SREG
+    OUT		SREG, R17		// Se ingresa el registro del SREG a R18
+    POP		R17				// Se trae el registro anterior de R18	
 
 	RETI
