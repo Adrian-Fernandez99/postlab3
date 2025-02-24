@@ -119,7 +119,7 @@ MAIN_LOOP:
 	CONTINUAR:
 	OUT		PORTC, R16		// Se loopea la salida del puerto
 	
-	CPI		R19, 50			// Se esperan 50 overflows para hacer un segundo
+	CPI		R19, 200		// Se esperan 200 overflows para hacer un segundo
 	BRNE	MAIN_LOOP		
 
 	CLR		R19				// Se limpia el registro de R19
@@ -128,8 +128,8 @@ MAIN_LOOP:
 
 // NON-Interrupt subroutines
 INIT_TMR0:
-	LDI		R16, (0 << CS00) | (0 << CS01) | (1 << CS02)
-	OUT		TCCR0B, R16		// Setear prescaler del TIMER 0 a 256
+	LDI		R16, (1 << CS00) | (1 << CS01) | (0 << CS02)
+	OUT		TCCR0B, R16		// Setear prescaler del TIMER 0 a 64
 	LDI		R16, 178
 	OUT		TCNT0, R16		// Cargar valor inicial en TCNT0
 	RET
