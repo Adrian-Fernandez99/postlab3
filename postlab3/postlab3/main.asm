@@ -102,12 +102,21 @@ SETUP:
 // Main loop
 MAIN_LOOP:
 	SEI
+
+	SBI		PORTC, 4		// Se setea el pin 4 del puerto C
+	OUT		PORTD, R23		// Sale la señal del contador 1
+	CBI		PORTC, 4		// Se clearea el pin 4 del puerto C
+	
 	OUT		PORTC, R16		// Se loopea la salida del puerto
+
+	SBI		PORTC, 5		// Se setea el pin 5 del puerto C
+	OUT		PORTD, R18		// Sale la señal del contador 1
+	CBI		PORTC, 5		// Se clearea el pin 5 del puerto C
+
 	CPI		R19, 50			// Se esperan 50 overflows para hacer un segundo
 	BRNE	MAIN_LOOP
 	CLR		R19
 	CALL	SUMA
-	OUT		PORTD, R18		// Sale la señal
 	JMP		MAIN_LOOP
 
 // NON-Interrupt subroutines
@@ -120,25 +129,24 @@ INIT_TMR0:
 
 SUMA:						// Función para el incremento del primer contador
 	INC		R20				// Se incrementa el valor
-	ADIW	Z, 1			// Se incrementa el valor en el puntero de la tabla
 	CPI		R20, 10
 	BRNE	SALTITO			// Se observa si tiene más de 4 bits
-	CALL	OVER			// En caso de overflow y debe regresar el puntero a 0
 	LDI		R20, 0x00		// En caso de overflow y debe regresar a 0
 	CALL	SUMA2
 	SALTITO:
-	//LAS		Z, R20
+	CALL	OVER			// Se resetea el puntero
+	ADD		ZL, R20			// Se ingresa el registro del contador al puntero
 	LPM		R18, Z			// Subir valor del puntero a registro
 	RET
 
 SUMA2:
 	INC		R22				// Se incrementa el valor
-	ADIW	Z, 1			// Se incrementa el valor en el puntero de la tabla
 	CPI		R22, 10
-	BRNE	SALTITO			// Se observa si tiene más de 4 bits
-	CALL	OVER			// En caso de overflow y debe regresar el puntero a 0
+	BRNE	SALTITO2			// Se observa si tiene más de 4 bits
 	LDI		R22, 0x00		// En caso de overflow y debe regresar a 0
 	SALTITO2:
+	CALL	OVER			// Se resetea el puntero
+	ADD		ZL, R22			// Se ingresa el registro del contador al puntero
 	LPM		R23, Z			// Subir valor del puntero a registro
 	RET
 
