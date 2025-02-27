@@ -114,7 +114,7 @@ MAIN_LOOP:
 	DISPLAY:
 	CBI		PORTC, 4		// Se clearea el pin 4 del puerto C
 	SBI		PORTC, 5		// Se setea el pin 5 del puerto C
-	OUT		PORTD, R18		// Sale la señal del contador 1
+	OUT		PORTD, R18		// Sale la señal del contador 2
 
 	CONTINUAR:
 	OUT		PORTC, R16		// Se loopea la salida del puerto
@@ -148,7 +148,7 @@ SUMA:						// Función para el incremento del primer contador
 
 SUMA2:
 	INC		R22				// Se incrementa el valor
-	CPI		R22, 7
+	CPI		R22, 6
 	BRNE	SALTITO2		// Se observa si tiene más de 4 bits
 	LDI		R22, 0x00		// En caso de overflow y debe regresar a 0
 	SALTITO2:
